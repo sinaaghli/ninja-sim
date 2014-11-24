@@ -1,0 +1,64 @@
+cmake_minimum_required(VERSION 2.4.3)
+
+#this line has to appear before 'PROJECT' in order to be able to disable incremental linking
+SET(MSVC_INCREMENTAL_DEFAULT ON)
+
+PROJECT(NINJA-SIM)
+
+IF(NOT CMAKE_BUILD_TYPE)
+# SET(CMAKE_BUILD_TYPE "Debug")
+ SET(CMAKE_BUILD_TYPE "Release")
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
+# This is the shortcut to finding GLU, GLUT and OpenGL if they are properly installed on your system
+# This should be the case.
+
+FIND_PACKAGE(OpenGL)
+IF (OPENGL_FOUND)
+        MESSAGE("OPENGL FOUND")
+        MESSAGE(${OPENGL_LIBRARIES})
+ELSE (OPENGL_FOUND)
+        MESSAGE("OPENGL NOT FOUND")
+        SET(OPENGL_gl_LIBRARY opengl32)
+        SET(OPENGL_glu_LIBRARY glu32)
+ENDIF (OPENGL_FOUND)
+
+
+FIND_PACKAGE(GLUT)
+IF(GLUT_FOUND)
+        MESSAGE("GLUT FOUND")
+        MESSAGE(${GLUT_glut_LIBRARY})
+ELSE(GLUT_FOUND)
+        MESSAGE("GLUT NOT FOUND")
+ENDIF(GLUT_FOUND)
+
+SET(NINJA-SIM_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+IF(EXISTS ${NINJA-SIM_SOURCE_DIR}/OpenGL AND IS_DIRECTORY ${NINJA-SIM_SOURCE_DIR}/OpenGL)
+        SUBDIRS(OpenGL)
+ENDIF()
+
+INCLUDE_DIRECTORIES(
+
+${BULLET_PHYSICS_SOURCE_DIR}/src 
+/usr/local/include/bullet
+./OpenGL
+${GLUT_INCLUDE_DIR}
+)
+#message("cmake curr source dir is : ${CMAKE_CURRENT_SOURCE_DIR}")
+
+LINK_LIBRARIES(
+   OpenGLSupport BulletDynamics BulletCollision LinearMath    ${GLUT_glut_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
+)
+
+ADD_EXECUTABLE(AppVehicleDemo
+	heightfield128x128.cpp
+	VehicleDemo.cpp
+	main.cpp
+)
+
+IF (INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
+			SET_TARGET_PROPERTIES(AppVehicleDemo PROPERTIES  DEBUG_POSTFIX "_Debug")
+			SET_TARGET_PROPERTIES(AppVehicleDemo PROPERTIES  MINSIZEREL_POSTFIX "_MinsizeRel")
+			SET_TARGET_PROPERTIES(AppVehicleDemo PROPERTIES  RELWITHDEBINFO_POSTFIX "_RelWithDebugInfo")
+ENDIF(INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES)
